@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>乙域旅游指南 - Eth Domain Travel Guide</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+
+<body>
+    <div id="container"></div>
+
+    <!-- 初始菜单栏 -->
+    <div id="menu" class="menu-active">
+        <div class="menu-header">
+            <h1>乙域旅游指南</h1>
+            <p class="welcome-text">欢迎来到乙域！请选择您想要探索的区域</p>
+        </div>
+        <div class="menu-scroll-container">
+            <div class="menu-scroll-content">
+                <div id="menu-buttons">
+                    <button class="menu-btn" data-scene="city">城市</button>
+                    <button class="menu-btn" data-scene="town">小镇</button>
+                    <button class="menu-btn" data-scene="village">村庄</button>
+                    <button class="menu-btn" data-scene="plain">旷原</button>
+                    <button class="menu-btn" data-scene="ethring">乙环</button>
+                </div>
+                <div class="rules">
+                    <h3>生存法则</h3>
+                    <ul>
+                        <li>昆虫与植物水火不容</li>
+                        <li>水是绝对安全的</li>
+                        <li>光是绝对安全的</li>
+                        <li>黑暗是危险的</li>
+                        <li>植物是危险的</li>
+                        <li>不要理会白色蚁人</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <!-- 滚动指示器 -->
+        <div class="scroll-indicator">
+            <div class="scroll-bar"></div>
+        </div>
+    </div>
+
+    <!-- 游戏UI -->
+    <div id="ui" class="hidden">
+        <div id="header">
+            <h1>乙域旅游指南</h1>
+            <button id="back-to-menu">返回菜单</button>
+        </div>
+        <div id="scene-info">
+            <h3 id="scene-name">城市</h3>
+            <p id="scene-description">高度现代化的城市景观</p>
+        </div>
+        <div id="controls">
+            <p>使用鼠标/触摸控制视角</p>
+            <p>WASD/方向键移动</p>
+            <p>点击探索隐藏元素</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

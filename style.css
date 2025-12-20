@@ -1,0 +1,747 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* 低多边形黑白红主题变量 */
+:root {
+    --main-bg: #000000;
+    --main-text: #ffffff;
+    --secondary-text: #cccccc;
+    --accent-color: #ff0000;
+    --danger-color: #cc0000;
+    --warning-color: #ff6600;
+    --safe-color: #00cc00;
+    --menu-bg: rgba(0, 0, 0, 0.9);
+    --card-bg: rgba(20, 20, 20, 0.85);
+    --border-color: rgba(255, 0, 0, 0.4);
+    --shadow-color: rgba(255, 0, 0, 0.3);
+    --grid-size: 40px;
+    --grid-color-1: #000000;
+    --grid-color-2: #111111;
+    --grid-hover-color: #ff0000;
+    --mouse-radius: 80px;
+}
+
+body {
+    font-family: 'Courier New', monospace;
+    background: var(--main-bg);
+    color: var(--main-text);
+    overflow: hidden;
+    cursor: crosshair;
+    /* 低多边形设计基础 */
+    font-smooth: never;
+    -webkit-font-smoothing: none;
+    -moz-osx-font-smoothing: none;
+    position: relative;
+}
+
+/* 国际象棋棋盘背景 */
+#chessboard-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -2;
+    background-size: var(--grid-size) var(--grid-size);
+    background-image:
+        linear-gradient(45deg, var(--grid-color-1) 25%, transparent 25%),
+        linear-gradient(-45deg, var(--grid-color-1) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, var(--grid-color-1) 75%),
+        linear-gradient(-45deg, transparent 75%, var(--grid-color-1) 75%);
+    background-position: 0 0, 0 calc(var(--grid-size) / 2), calc(var(--grid-size) / 2) calc(-var(--grid-size) / 2), calc(-var(--grid-size) / 2) 0;
+    background-color: var(--grid-color-2);
+    transition: all 0.3s ease;
+}
+
+/* 鼠标影响区域 */
+#mouse-influence {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+/* 鼠标影响区域 - 方格形变效果 */
+.grid-deformation {
+    position: absolute;
+    width: var(--grid-size);
+    height: var(--grid-size);
+    background: radial-gradient(circle, rgba(255, 0, 0, 0.1) 0%, transparent 70%);
+    mix-blend-mode: screen;
+    transition: all 0.3s ease;
+    transform-origin: center;
+}
+
+/* 鼠标轨迹效果 - 边缘粗糙的圆形 */
+.trail {
+    position: absolute;
+    width: var(--mouse-radius);
+    height: var(--mouse-radius);
+    background: radial-gradient(circle, var(--accent-color) 0%, transparent 70%);
+    border-radius: 50%;
+    opacity: 0.6;
+    transform: translate(-50%, -50%);
+    animation: trail-fade 2s ease-out forwards;
+    /* 边缘粗糙效果 */
+    filter: blur(10px) contrast(2) brightness(1.5);
+    mix-blend-mode: screen;
+    /* 随机不规则边框 */
+    clip-path: circle(calc(50% + (var(--mouse-radius) * 0.05 * sin(calc(var(--angle) * 1deg)))) at center);
+    box-shadow: 0 0 30px var(--accent-color),
+        0 0 60px var(--accent-color),
+        inset 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+@keyframes trail-fade {
+    0% {
+        opacity: 0.8;
+        transform: translate(-50%, -50%) scale(1);
+        filter: blur(5px) contrast(2) brightness(1.5);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(1.5);
+        filter: blur(20px) contrast(2) brightness(1.5);
+    }
+}
+
+/* 鼠标悬停时的全局效果 */
+body:hover #chessboard-background {
+    /* 背景轻微扭曲 */
+    filter: contrast(1.2);
+}
+
+#container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 1s ease;
+}
+
+#container.show {
+    opacity: 1;
+}
+
+/* 初始菜单栏 - 低多边形设计 */
+#menu {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 600px;
+    height: 80vh;
+    max-height: 800px;
+    background: transparent;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: all 0.5s ease;
+    opacity: 0;
+    pointer-events: none;
+}
+
+#menu.menu-active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+#menu.fade-out {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(1.1) translate(-50%, -50%);
+}
+
+/* 菜单头部 */
+.menu-header {
+    text-align: center;
+    width: 100%;
+    padding: 20px 0;
+    margin-bottom: 20px;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(10px);
+    /* 低多边形形状 */
+    clip-path: polygon(0% 10%,
+            5% 0%,
+            95% 0%,
+            100% 10%,
+            100% 90%,
+            95% 100%,
+            5% 100%,
+            0% 90%);
+}
+
+/* 滚动容器 */
+.menu-scroll-container {
+    width: 100%;
+    height: calc(100% - 120px);
+    overflow: hidden;
+    position: relative;
+    margin-bottom: 20px;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(10px);
+    /* 低多边形形状 */
+    clip-path: polygon(0% 10%,
+            5% 0%,
+            95% 0%,
+            100% 10%,
+            100% 90%,
+            95% 100%,
+            5% 100%,
+            0% 90%);
+}
+
+/* 滚动内容 */
+.menu-scroll-content {
+    width: 100%;
+    height: auto;
+    padding: 20px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transition: transform 0.3s ease-out;
+    will-change: transform;
+    text-align: center;
+}
+
+/* 滚动指示器 */
+.scroll-indicator {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 60%;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    pointer-events: none;
+}
+
+/* 滚动条 */
+.scroll-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 30%;
+    background: var(--accent-color);
+    border-radius: 2px;
+    transition: transform 0.1s ease-out;
+    box-shadow: 0 0 10px var(--accent-color), 0 0 20px var(--accent-color);
+}
+
+#menu h1 {
+    font-size: 3rem;
+    margin: 0;
+    text-shadow: 0 0 10px var(--accent-color),
+        0 0 20px var(--accent-color),
+        0 0 30px var(--accent-color);
+    letter-spacing: 5px;
+    animation: float 3s ease-in-out infinite;
+    color: var(--main-text);
+    /* 低多边形文字效果 */
+    text-transform: uppercase;
+    font-weight: bold;
+    line-height: 1.2;
+    /* 低多边形轮廓 */
+    outline: 1px solid var(--accent-color);
+    outline-offset: 2px;
+    padding: 10px 20px;
+    background: rgba(0, 0, 0, 0.8);
+    /* 低多边形形状 */
+    clip-path: polygon(0% 10%,
+            5% 0%,
+            95% 0%,
+            100% 10%,
+            100% 90%,
+            95% 100%,
+            5% 100%,
+            0% 90%);
+}
+
+.welcome-text {
+    font-size: 1.2rem;
+    margin: 0;
+    opacity: 0.9;
+    line-height: 1.6;
+    color: var(--secondary-text);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-align: center;
+    max-width: 80%;
+    /* 低多边形文字效果 */
+    font-weight: bold;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 15px;
+    /* 低多边形形状 */
+    clip-path: polygon(2% 0%,
+            98% 0%,
+            100% 100%,
+            0% 100%);
+    border: 1px solid var(--accent-color);
+}
+
+#menu-buttons {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+    width: 100%;
+    max-width: 400px;
+}
+
+.menu-btn {
+    /* 低多边形按钮基础样式 */
+    background: rgba(0, 0, 0, 0.8);
+    color: var(--main-text);
+    border: 2px solid var(--main-text);
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    font-family: 'Courier New', monospace;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    /* 移除圆角，采用低多边形形状 */
+    border-radius: 0;
+    backdrop-filter: blur(5px);
+    min-width: 250px;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    font-weight: bold;
+    /* 低多边形形状 */
+    clip-path: polygon(5% 0%,
+            95% 0%,
+            100% 50%,
+            95% 100%,
+            5% 100%,
+            0% 50%);
+    /* 基础阴影 */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+    position: relative;
+    overflow: hidden;
+}
+
+/* 按钮内部发光效果 */
+.menu-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 0, 0, 0.3), transparent);
+    transition: left 0.5s ease;
+    z-index: 0;
+}
+
+/* 按钮悬停效果 - 红色荧光 */
+.menu-btn:hover {
+    background: rgba(30, 0, 0, 0.9);
+    color: var(--main-text);
+    border-color: var(--accent-color);
+    /* 高对比度红色荧光效果 */
+    box-shadow: 0 0 20px var(--accent-color),
+        0 0 40px var(--accent-color),
+        0 0 60px var(--accent-color);
+    text-shadow: 0 0 5px var(--main-text),
+        0 0 10px var(--main-text),
+        0 0 15px var(--accent-color);
+    transform: translateY(-3px);
+    animation: pulse-red 0.5s ease-in-out;
+}
+
+.menu-btn:hover::before {
+    left: 100%;
+}
+
+/* 按钮点击效果 */
+.menu-btn:active {
+    transform: translateY(0) scale(0.95);
+    box-shadow: 0 0 10px var(--accent-color),
+        0 0 20px var(--accent-color);
+    clip-path: polygon(2% 0%,
+            98% 0%,
+            100% 50%,
+            98% 100%,
+            2% 100%,
+            0% 50%);
+}
+
+/* 生存法则 - 低多边形设计 */
+.rules {
+    background: rgba(0, 0, 0, 0.8);
+    padding: 20px;
+    /* 低多边形形状 */
+    clip-path: polygon(0% 5%,
+            100% 0%,
+            100% 95%,
+            0% 100%);
+    border: 2px solid var(--accent-color);
+    max-width: 400px;
+    /* 移除圆角 */
+    border-radius: 0;
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.5),
+        inset 0 0 15px rgba(255, 0, 0, 0.1);
+}
+
+.rules h3 {
+    margin-bottom: 15px;
+    color: var(--accent-color);
+    text-shadow: 0 0 5px var(--accent-color),
+        0 0 10px var(--accent-color);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: bold;
+    border-bottom: 1px solid var(--accent-color);
+    padding-bottom: 10px;
+}
+
+.rules ul {
+    list-style: none;
+    text-align: left;
+    line-height: 1.8;
+    color: var(--secondary-text);
+    padding: 0;
+    margin: 0;
+}
+
+.rules li {
+    margin-bottom: 12px;
+    padding-left: 20px;
+    position: relative;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.rules li::before {
+    content: '▶';
+    color: var(--accent-color);
+    font-weight: bold;
+    position: absolute;
+    left: 0;
+    text-shadow: 0 0 5px var(--accent-color);
+    font-size: 1rem;
+}
+
+/* 红色脉冲动画 */
+@keyframes pulse-red {
+
+    0%,
+    100% {
+        transform: scale(1) translateY(-3px);
+        box-shadow: 0 0 20px var(--accent-color),
+            0 0 40px var(--accent-color),
+            0 0 60px var(--accent-color);
+    }
+
+    50% {
+        transform: scale(1.05) translateY(-3px);
+        box-shadow: 0 0 30px var(--accent-color),
+            0 0 60px var(--accent-color),
+            0 0 90px var(--accent-color);
+    }
+}
+
+/* 游戏UI */
+#ui {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 20px;
+    z-index: 10;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+#ui.show {
+    opacity: 1;
+}
+
+#header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+#ui h1 {
+    font-size: 2rem;
+    text-shadow: 0 0 10px rgba(160, 200, 120, 0.8);
+    letter-spacing: 3px;
+    animation: float 3s ease-in-out infinite;
+    pointer-events: auto;
+    color: var(--secondary-text);
+    margin: 0;
+    text-transform: uppercase;
+    font-weight: bold;
+    /* 像素化增强 */
+    line-height: 1.2;
+}
+
+#back-to-menu {
+    background: rgba(0, 0, 0, 0.8);
+    color: var(--main-text);
+    border: 2px solid var(--main-text);
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    font-family: 'Courier New', monospace;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 0;
+    backdrop-filter: blur(10px);
+    pointer-events: auto;
+    text-transform: uppercase;
+    font-weight: bold;
+    text-shadow: 0 0 2px var(--accent-color);
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+    /* 低多边形形状 */
+    clip-path: polygon(5% 0%,
+            95% 0%,
+            100% 50%,
+            95% 100%,
+            5% 100%,
+            0% 50%);
+}
+
+#back-to-menu:hover {
+    background: rgba(30, 0, 0, 0.9);
+    color: var(--main-text);
+    border-color: var(--accent-color);
+    /* 高对比度红色荧光效果 */
+    box-shadow: 0 0 20px var(--accent-color),
+        0 0 40px var(--accent-color),
+        0 0 60px var(--accent-color);
+    text-shadow: 0 0 5px var(--main-text),
+        0 0 10px var(--main-text),
+        0 0 15px var(--accent-color);
+    transform: translateY(-2px);
+    animation: pulse-red 0.5s ease-in-out;
+}
+
+#back-to-menu:active {
+    transform: translateY(0) scale(0.95);
+    box-shadow: 0 0 10px var(--accent-color),
+        0 0 20px var(--accent-color);
+    clip-path: polygon(2% 0%,
+            98% 0%,
+            100% 50%,
+            98% 100%,
+            2% 100%,
+            0% 50%);
+}
+
+/* 场景信息 */
+#scene-info {
+    background: var(--card-bg);
+    padding: 15px;
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    max-width: 400px;
+    margin: 20px auto;
+    text-align: center;
+    pointer-events: auto;
+    box-shadow: 0 0 30px var(--shadow-color);
+    /* 像素化效果 */
+    outline: 1px solid rgba(120, 160, 100, 0.2);
+    outline-offset: -1px;
+}
+
+#scene-name {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+    color: var(--secondary-text);
+    text-shadow: 0 0 8px rgba(160, 200, 120, 0.6);
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+#scene-description {
+    opacity: 0.8;
+    line-height: 1.5;
+    color: var(--secondary-text);
+    font-size: 0.95rem;
+}
+
+#controls {
+    font-size: 0.9rem;
+    opacity: 0.7;
+    text-align: center;
+    margin-top: 20px;
+    pointer-events: auto;
+    color: var(--secondary-text);
+}
+
+#controls p {
+    margin: 5px 0;
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.85rem;
+}
+
+/* 动画效果 */
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.7;
+    }
+
+    50% {
+        transform: scale(1.1);
+        opacity: 1;
+        box-shadow: 0 0 20px rgba(100, 160, 80, 0.8);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes scanline {
+    0% {
+        background-position: 0 0;
+    }
+
+    100% {
+        background-position: 0 20px;
+    }
+}
+
+.fade-in {
+    animation: fadeIn 1s ease-in-out;
+}
+
+/* 低分辨率扫描线效果增强 */
+body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(0deg,
+            rgba(0, 0, 0, 0.1),
+            rgba(0, 0, 0, 0.1) 1px,
+            transparent 1px,
+            transparent 2px);
+    pointer-events: none;
+    z-index: 100;
+    animation: scanline 0.1s linear infinite;
+    opacity: 0.3;
+    image-rendering: pixelated;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .menu-content {
+        margin: 20px;
+        padding: 30px 20px;
+    }
+
+    #menu h1 {
+        font-size: 2rem;
+    }
+
+    .welcome-text {
+        font-size: 1rem;
+    }
+
+    .menu-btn {
+        padding: 12px 24px;
+        font-size: 1rem;
+        min-width: 180px;
+    }
+
+    #ui h1 {
+        font-size: 1.5rem;
+    }
+
+    #header {
+        flex-direction: column;
+        gap: 15px;
+        justify-content: center;
+        text-align: center;
+    }
+
+    #scene-info {
+        margin: 20px;
+    }
+
+    /* 移动端像素化增强 */
+    body {
+        font-size: 14px;
+    }
+}
+
+/* 乙域主题核美学滤镜效果 */
+#container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, transparent 0%, rgba(20, 30, 20, 0.5) 100%);
+    pointer-events: none;
+    z-index: 2;
+    /* 像素化滤镜 */
+    image-rendering: pixelated;
+}
+
+/* 噪点效果 - 乙域主题 */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08' fill='%23203020'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 100;
+    image-rendering: pixelated;
+    mix-blend-mode: overlay;
+}
